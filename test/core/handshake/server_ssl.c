@@ -140,10 +140,16 @@ static bool server_ssl_test(const char *alpn_list[], unsigned int alpn_list_len,
   SSL_load_error_strings();
   OpenSSL_add_ssl_algorithms();
 
-  const SSL_METHOD *method = TLSv1_2_client_method();
+  const SSL_METHOD *method = TLS_client_method();
   SSL_CTX *ctx = SSL_CTX_new(method);
   if (!ctx) {
     perror("Unable to create SSL context");
+    ERR_print_errors_fp(stderr);
+    abort();
+  }
+
+  if (!SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION)) {
+    perror("Could not set minimum TLS version");
     ERR_print_errors_fp(stderr);
     abort();
   }

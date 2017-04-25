@@ -528,11 +528,15 @@ static EVP_PKEY *pkey_from_jwk(grpc_exec_ctx *exec_ctx, const grpc_json *json,
     gpr_log(GPR_ERROR, "Cannot set RSA key from inputs.");
     goto end;
   }
+  tmp_n = tmp_e = NULL; /* Now owned by the RSA object. */
+
   result = EVP_PKEY_new();
   EVP_PKEY_set1_RSA(result, rsa); /* uprefs rsa. */
 
 end:
   if (rsa != NULL) RSA_free(rsa);
+  if (tmp_n != NULL) BN_free(tmp_n);
+  if (tmp_e != NULL) BN_free(tmp_e);
   return result;
 }
 
