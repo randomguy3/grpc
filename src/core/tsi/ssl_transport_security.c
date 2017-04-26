@@ -825,15 +825,17 @@ static tsi_result ssl_protector_unprotect(
   *unprotected_bytes_size = output_bytes_size - output_bytes_offset;
 
   /* Then, try to write some data to ssl. */
-  GPR_ASSERT(*protected_frames_bytes_size <= INT_MAX);
-  written_into_ssl = BIO_write(impl->into_ssl, protected_frames_bytes,
-                               (int)*protected_frames_bytes_size);
-  if (written_into_ssl < 0) {
-    gpr_log(GPR_ERROR, "Sending protected frame to ssl failed with %d",
-            written_into_ssl);
-    return TSI_INTERNAL_ERROR;
+  if (*protected_frames_bytes_size) {
+    GPR_ASSERT(*protected_frames_bytes_size <= INT_MAX);
+    written_into_ssl = BIO_write(impl->into_ssl, protected_frames_bytes,
+                                (int)*protected_frames_bytes_size);
+    if (written_into_ssl < 0) {
+      gpr_log(GPR_ERROR, "Sending protected frame to ssl failed with %d",
+              written_into_ssl);
+      return TSI_INTERNAL_ERROR;
+    }
+    *protected_frames_bytes_size = (size_t)written_into_ssl;
   }
-  *protected_frames_bytes_size = (size_t)written_into_ssl;
 
   /* Now try to read some data again. */
   result = do_ssl_read(impl->ssl, unprotected_bytes, unprotected_bytes_size);
