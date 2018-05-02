@@ -52,7 +52,14 @@ if("${gRPC_PROTOBUF_PROVIDER}" STREQUAL "module")
     set(gRPC_INSTALL FALSE)
   endif()
 elseif("${gRPC_PROTOBUF_PROVIDER}" STREQUAL "package")
-  find_package(Protobuf REQUIRED ${gRPC_PROTOBUF_PACKAGE_TYPE})
+  # FindProtobuf.cmake as shipped with CMake does not define the protobuf targets. Protobuf
+  # ships with a CMake package configuration file that does define targets, so use that by default
+  # (find_package with no CONFIG argument would prioritise the find module over the package-supplied
+  # configuration).
+  find_package(Protobuf CONFIG ${gRPC_PROTOBUF_PACKAGE_TYPE})
+  if(NOT Protobuf_FOUND)
+    find_package(Protobuf REQUIRED ${gRPC_PROTOBUF_PACKAGE_TYPE})
+  endif()
 
   # {Protobuf,PROTOBUF}_FOUND is defined based on find_package type ("MODULE" vs "CONFIG").
   # For "MODULE", the case has also changed between cmake 3.5 and 3.6.
